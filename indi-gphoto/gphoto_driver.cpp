@@ -19,6 +19,7 @@
   The full GNU General Public License is included in this distribution in the
   file called LICENSE.
 *******************************************************************************/
+#include "gphoto_focus.h"
 #include <fcntl.h>
 #include <pthread.h>
 #include <string.h>
@@ -2248,112 +2249,114 @@ bool gphoto_can_focus(gphoto_driver *gphoto)
 int gphoto_manual_focus(gphoto_driver *gphoto, int speed, char *errMsg)
 {
     int rc = 0;
-
-    switch (gphoto->focus_widget->type)
-    {
-        case GP_WIDGET_RADIO:
-        {
-            // For Canon
-            // Speed is either
-            // 0: (None)
-            // 1: Far 1
-            // 2: Far 2
-            // 3: Far 3
-            // -1: Near 1
-            // -2: Near 2
-            // -3: Near 3
-
-            // Widget: Near1, Near2, Near3, None, Far1, Far2, Far3
-            // Mapping target speed to widget choices
-            uint8_t choice_index = (speed >= 0) ? speed + 3 : (speed * -1) - 1;
-            if (choice_index > gphoto->focus_widget->choice_cnt)
-            {
-                snprintf(errMsg, MAXRBUF, "Speed %d choice index %d is out of bounds for focus widget count %d",
-                         speed, choice_index, gphoto->focus_widget->choice_cnt);
-                return rc;
-            }
-
-            // Set to None First before setting the actual value
-            gp_widget_set_value(gphoto->focus_widget->widget, gphoto->focus_widget->choices[3]);
-            gphoto_set_config(gphoto->camera, gphoto->config, gphoto->context);
-
-            usleep(100000);
-
-            rc = gp_widget_set_value(gphoto->focus_widget->widget, gphoto->focus_widget->choices[choice_index]);
-            if (rc < GP_OK)
-            {
-                snprintf(errMsg, MAXRBUF, "Failed to set focus widget choice to %d: %s", choice_index, gp_result_as_string(rc));
-                return rc;
-            }
-            break;
-        }
-        case GP_WIDGET_RANGE:
-        {
-            int rval = speed;
-
-            /* Range is on Nikon from -32768 <-> 32768 */
-            if (strstr(device, "Nikon"))
-            {
-                switch (speed)
-                {
-                    case -3:
-                        rval = -1024;
-                        break;
-                    case -2:
-                        rval = -512;
-                        break;
-                    case -1:
-                        rval = -128;
-                        break;
-                    case 1:
-                        rval = 128;
-                        break;
-                    case 2:
-                        rval = 512;
-                        break;
-                    case 3:
-                        rval = 1024;
-                        break;
-                    default:
-                        rval = 0;
-                        break;
-                }
-            }
-
-            rc = gp_widget_set_value(gphoto->focus_widget->widget, &rval);
-            if (rc < GP_OK)
-            {
-                snprintf(errMsg, MAXRBUF, "could not set widget value to 1: %s", gp_result_as_string(rc));
-                return rc;
-            }
-            break;
-        }
-        default:
-            rc = -1;
-            snprintf(errMsg, MAXRBUF, "Unsupported camera type: %d", gphoto->focus_widget->type);
-            return rc;
-    }
-
-
-    for (int i = 0; i < 10; i++)
-    {
-        rc = gphoto_set_config(gphoto->camera, gphoto->config, gphoto->context);
-        if (rc == GP_ERROR_CAMERA_BUSY)
-        {
-            usleep(500000);
-            continue;
-        }
-        else
-            break;
-    }
-
-    if (rc < GP_OK)
-    {
-        snprintf(errMsg, MAXRBUF, "could not set config tree to manual focus: %s", gp_result_as_string(rc));
-        return rc;
-    }
-
+    camera_manual_focus(gphoto->camera, speed, gphoto->context);
     return rc;
+
+    //switch (gphoto->focus_widget->type)
+    //{
+        //case GP_WIDGET_RADIO:
+        //{
+            //// For Canon
+            //// Speed is either
+            //// 0: (None)
+            //// 1: Far 1
+            //// 2: Far 2
+            //// 3: Far 3
+            //// -1: Near 1
+            //// -2: Near 2
+            //// -3: Near 3
+
+            //// Widget: Near1, Near2, Near3, None, Far1, Far2, Far3
+            //// Mapping target speed to widget choices
+            //uint8_t choice_index = (speed >= 0) ? speed + 3 : (speed * -1) - 1;
+            //if (choice_index > gphoto->focus_widget->choice_cnt)
+            //{
+                //snprintf(errMsg, MAXRBUF, "Speed %d choice index %d is out of bounds for focus widget count %d",
+                         //speed, choice_index, gphoto->focus_widget->choice_cnt);
+                //return rc;
+            //}
+
+            //// Set to None First before setting the actual value
+            //gp_widget_set_value(gphoto->focus_widget->widget, gphoto->focus_widget->choices[3]);
+            //gphoto_set_config(gphoto->camera, gphoto->config, gphoto->context);
+
+            //usleep(100000);
+
+            //rc = gp_widget_set_value(gphoto->focus_widget->widget, gphoto->focus_widget->choices[choice_index]);
+            //if (rc < GP_OK)
+            //{
+                //snprintf(errMsg, MAXRBUF, "Failed to set focus widget choice to %d: %s", choice_index, gp_result_as_string(rc));
+                //return rc;
+            //}
+            //break;
+        //}
+        //case GP_WIDGET_RANGE:
+        //{
+            //int rval = speed;
+
+            //[> Range is on Nikon from -32768 <-> 32768 <]
+            //if (strstr(device, "Nikon"))
+            //{
+                //switch (speed)
+                //{
+                    //case -3:
+                        //rval = -1024;
+                        //break;
+                    //case -2:
+                        //rval = -512;
+                        //break;
+                    //case -1:
+                        //rval = -128;
+                        //break;
+                    //case 1:
+                        //rval = 128;
+                        //break;
+                    //case 2:
+                        //rval = 512;
+                        //break;
+                    //case 3:
+                        //rval = 1024;
+                        //break;
+                    //default:
+                        //rval = 0;
+                        //break;
+                //}
+            //}
+
+            //rc = gp_widget_set_value(gphoto->focus_widget->widget, &rval);
+            //if (rc < GP_OK)
+            //{
+                //snprintf(errMsg, MAXRBUF, "could not set widget value to 1: %s", gp_result_as_string(rc));
+                //return rc;
+            //}
+            //break;
+        //}
+        //default:
+            //rc = -1;
+            //snprintf(errMsg, MAXRBUF, "Unsupported camera type: %d", gphoto->focus_widget->type);
+            //return rc;
+    //}
+
+
+    //for (int i = 0; i < 10; i++)
+    //{
+        //rc = gphoto_set_config(gphoto->camera, gphoto->config, gphoto->context);
+        //if (rc == GP_ERROR_CAMERA_BUSY)
+        //{
+            //usleep(500000);
+            //continue;
+        //}
+        //else
+            //break;
+    //}
+
+    //if (rc < GP_OK)
+    //{
+        //snprintf(errMsg, MAXRBUF, "could not set config tree to manual focus: %s", gp_result_as_string(rc));
+        //return rc;
+    //}
+
+    //return rc;
 }
 
 const char *gphoto_get_manufacturer(gphoto_driver *gphoto)

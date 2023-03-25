@@ -86,6 +86,7 @@ set(indigphoto_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/gphoto_driver.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/gphoto_readimage.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/dsusbdriver.cpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/gphoto_focus.cpp
    )
 
 IF (UNITY_BUILD)

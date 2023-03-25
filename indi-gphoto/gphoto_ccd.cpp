@@ -39,7 +39,7 @@
 
 #define FOCUS_TAB    "Focus"
 #define MAX_DEVICES  5 /* Max device cameraCount */
-#define FOCUS_TIMER  50
+#define FOCUS_TIMER  100
 #define MAX_RETRIES  3
 
 extern char * __progname;
@@ -1748,12 +1748,12 @@ void GPhotoCCD::UpdateFocusMotionCallback()
     if (m_TargetLargeStep > 0)
     {
         m_TargetLargeStep--;
-        focusSpeed = IUFindOnSwitchIndex(&FocusMotionSP) == FOCUS_INWARD ? -3 : 3;
+        focusSpeed = IUFindOnSwitchIndex(&FocusMotionSP) == FOCUS_INWARD ? -5 : 5;
     }
     else if (m_TargetMedStep > 0)
     {
         m_TargetMedStep--;
-        focusSpeed = IUFindOnSwitchIndex(&FocusMotionSP) == FOCUS_INWARD ? -2 : 2;
+        focusSpeed = IUFindOnSwitchIndex(&FocusMotionSP) == FOCUS_INWARD ? -3 : 3;
     }
     else if (m_TargetLowStep > 0)
     {
